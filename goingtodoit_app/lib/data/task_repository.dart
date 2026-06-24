@@ -24,7 +24,8 @@ class TaskRepository extends ChangeNotifier {
       if (await file.exists()) {
         final content = await file.readAsString();
         final List<dynamic> raw = jsonDecode(content);
-        _tasks = raw.map((e) => _taskFromJson(e)).toList();
+        _tasks =
+            raw.map((e) => Task.fromJson(e as Map<String, dynamic>)).toList();
       }
     } catch (e) {
       debugPrint('TaskRepository init error: $e');
@@ -38,7 +39,7 @@ class TaskRepository extends ChangeNotifier {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/$_fileName');
-      final raw = _tasks.map((t) => _taskToJson(t)).toList();
+      final raw = _tasks.map((t) => t.toJson()).toList();
       await file.writeAsString(jsonEncode(raw));
     } catch (e) {
       debugPrint('TaskRepository save error: $e');
@@ -78,40 +79,4 @@ class TaskRepository extends ChangeNotifier {
       return null;
     }
   }
-
-  Map<String, dynamic> _taskToJson(Task t) => {
-        'id': t.id,
-        'title': t.title,
-        'contactName': t.contactName,
-        'contactValue': t.contactValue,
-        'type': t.type.name,
-        'dueDate': t.dueDate.toIso8601String(),
-        'isCompleted': t.isCompleted,
-        'isFullForce': t.isFullForce,
-        'missedCount': t.missedCount,
-        'priority': t.priority.name,
-        'completedAt': t.completedAt?.toIso8601String(),
-      };
-
-  Task _taskFromJson(Map<String, dynamic> json) => Task(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        contactName: json['contactName'] as String?,
-        contactValue: json['contactValue'] as String?,
-        type: TaskType.values.firstWhere(
-          (e) => e.name == json['type'],
-          orElse: () => TaskType.general,
-        ),
-        dueDate: DateTime.parse(json['dueDate'] as String),
-        isCompleted: json['isCompleted'] as bool? ?? false,
-        isFullForce: json['isFullForce'] as bool? ?? false,
-        missedCount: json['missedCount'] as int? ?? 0,
-        priority: TaskPriority.values.firstWhere(
-          (e) => e.name == json['priority'],
-          orElse: () => TaskPriority.normal,
-        ),
-        completedAt: json['completedAt'] != null
-            ? DateTime.parse(json['completedAt'] as String)
-            : null,
-      );
 }

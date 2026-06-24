@@ -27,6 +27,42 @@ class Task {
 
   bool get isOverdue => !isCompleted && DateTime.now().isAfter(dueDate);
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'contactName': contactName,
+        'contactValue': contactValue,
+        'type': type.name,
+        'dueDate': dueDate.toIso8601String(),
+        'isCompleted': isCompleted,
+        'isFullForce': isFullForce,
+        'missedCount': missedCount,
+        'priority': priority.name,
+        'completedAt': completedAt?.toIso8601String(),
+      };
+
+  factory Task.fromJson(Map<String, dynamic> json) => Task(
+        id: json['id'] as String,
+        title: json['title'] as String,
+        contactName: json['contactName'] as String?,
+        contactValue: json['contactValue'] as String?,
+        type: TaskType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => TaskType.general,
+        ),
+        dueDate: DateTime.parse(json['dueDate'] as String),
+        isCompleted: json['isCompleted'] as bool? ?? false,
+        isFullForce: json['isFullForce'] as bool? ?? false,
+        missedCount: json['missedCount'] as int? ?? 0,
+        priority: TaskPriority.values.firstWhere(
+          (e) => e.name == json['priority'],
+          orElse: () => TaskPriority.normal,
+        ),
+        completedAt: json['completedAt'] != null
+            ? DateTime.parse(json['completedAt'] as String)
+            : null,
+      );
+
   Task copyWith({
     String? id,
     String? title,

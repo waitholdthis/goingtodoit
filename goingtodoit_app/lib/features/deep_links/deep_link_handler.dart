@@ -3,8 +3,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/task_model.dart';
 
 class DeepLinkHandler {
-  static Future<void> launch(BuildContext context, Task task) async {
-    final uri = switch (task.type) {
+  /// Builds the deep-link [Uri] for a task. Pure and side-effect free so it
+  /// can be unit-tested independently of [launchUrl].
+  static Uri buildUri(Task task) {
+    return switch (task.type) {
       TaskType.call => Uri(scheme: 'tel', path: task.contactValue ?? ''),
       TaskType.email => Uri(
           scheme: 'mailto',
@@ -19,6 +21,10 @@ class DeepLinkHandler {
         ),
       TaskType.general => Uri(path: ''),
     };
+  }
+
+  static Future<void> launch(BuildContext context, Task task) async {
+    final uri = buildUri(task);
 
     try {
       final launched =
