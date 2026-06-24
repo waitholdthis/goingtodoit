@@ -3,6 +3,7 @@ import 'core/task_model.dart';
 import 'data/task_repository.dart';
 import 'features/task_creation/task_creation_screen.dart';
 import 'features/deadline/deadline_handler.dart';
+import 'features/deep_links/deep_link_handler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,8 +65,13 @@ class TaskListScreen extends StatelessWidget {
                 trailing: task.isCompleted
                     ? const Icon(Icons.check_circle, color: Colors.green)
                     : IconButton(
-                        icon: const Icon(Icons.play_arrow),
-                        onPressed: () => _launchTask(context, task),
+                        icon: Icon(task.type == TaskType.general
+                            ? Icons.check
+                            : Icons.play_arrow),
+                        tooltip: task.type == TaskType.general
+                            ? 'Mark done'
+                            : 'Launch',
+                        onPressed: () => _completeTask(context, task),
                       ),
               );
             },
@@ -84,9 +90,20 @@ class TaskListScreen extends StatelessWidget {
     );
   }
 
-  void _launchTask(BuildContext context, Task task) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Launching: ${task.title}')),
+  Future<void> _completeTask(BuildContext context, Task task) async {
+    // General tasks have no external target; everything else opens its deep link.
+    if (task.type != TaskType.general) {
+      await DeepLinkHandler.launch(context, task);
+    }
+    // Mark complete and cancel any pending deadline notification.
+    await TaskRepository().updateTask(
+      task.copyWith(isCompleted: true, completedAt: DateTime.now()),
     );
+    await DeadlineHandler.cancel(task.id);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Completed: ${task.title}')),
+      );
+    }
   }
 }

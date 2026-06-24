@@ -6,9 +6,12 @@ on:
   pull_request:
     branches: ['main']
 
+env:
+  FLUTTER_VERSION: 3.44.3
+
 jobs:
   analyze:
-    name: Flutter Analyze
+    name: Flutter Analyze & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,15 +21,23 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.24.0
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Install dependencies
         working-directory: goingtodoit_app
         run: flutter pub get
 
+      - name: Verify formatting
+        working-directory: goingtodoit_app
+        run: dart format --output=none --set-exit-if-changed .
+
       - name: Analyze
         working-directory: goingtodoit_app
         run: flutter analyze
+
+      - name: Test
+        working-directory: goingtodoit_app
+        run: flutter test
 
   android:
     name: Android Build
@@ -35,11 +46,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.24.0
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Install dependencies
         working-directory: goingtodoit_app
@@ -67,10 +84,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.24.0
-
-      - name: Select Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Install dependencies
         working-directory: goingtodoit_app

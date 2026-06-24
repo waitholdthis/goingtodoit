@@ -1,9 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import '../core/task_model.dart';
+import '../../core/task_model.dart';
 
 class DeadlineHandler {
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -12,7 +11,7 @@ class DeadlineHandler {
   static Future<void> init() async {
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
-    const linux = LinuxInitializationSettings(defaultAction: 'Open app');
+    const linux = LinuxInitializationSettings(defaultActionName: 'Open app');
 
     await _notifications.initialize(
       const InitializationSettings(android: android, iOS: ios, linux: linux),
@@ -46,20 +45,20 @@ class DeadlineHandler {
       presentAlert: true,
     );
 
-    const details = NotificationDetails(android: android, iOS: ios);
+    final details = NotificationDetails(android: android, iOS: ios);
 
     await _notifications.zonedSchedule(
       task.id.hashCode,
       task.title,
-      task.isFullForce
-          ? '⏰ Full Force: tap to launch'
-          : '📋 Task due now',
+      task.isFullForce ? '⏰ Full Force: tap to launch' : '📋 Task due now',
       scheduled,
       details,
       payload: task.id,
+      androidScheduleMode: task.isFullForce
+          ? AndroidScheduleMode.exactAllowWhileIdle
+          : AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
     );
 
     debugPrint('DeadlineHandler: scheduled "${task.title}" at $scheduled');
