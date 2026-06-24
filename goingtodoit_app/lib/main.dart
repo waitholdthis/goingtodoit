@@ -2,10 +2,18 @@ import 'package:flutter/material.dart';
 import 'core/task_model.dart';
 import 'data/task_repository.dart';
 import 'features/task_creation/task_creation_screen.dart';
+import 'features/deadline/deadline_handler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await TaskRepository.init();
+  await DeadlineHandler.init();
+  // Reschedule all pending tasks on startup.
+  for (final task in TaskRepository().getAllTasks()) {
+    if (!task.isCompleted) {
+      await DeadlineHandler.schedule(task);
+    }
+  }
   runApp(const GoingToDoItApp());
 }
 

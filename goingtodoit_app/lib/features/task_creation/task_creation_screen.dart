@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/task_model.dart';
 import '../../data/task_repository.dart';
+import '../../features/deadline/deadline_handler.dart';
 import '../../features/deep_links/deep_link_handler.dart';
 
 class TaskCreationScreen extends StatefulWidget {
@@ -67,6 +68,7 @@ class _TaskCreationScreenState extends State<TaskCreationScreen> {
     );
 
     await repo.addTask(task);
+    await DeadlineHandler.schedule(task);
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
