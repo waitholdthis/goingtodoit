@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import '../../core/task_model.dart';
 import '../../data/task_repository.dart';
 import '../../features/deadline/deadline_handler.dart';
-import '../../features/deep_links/deep_link_handler.dart';
 
 class TaskCreationScreen extends StatefulWidget {
   const TaskCreationScreen({super.key});
@@ -36,13 +35,16 @@ class _TaskCreationScreenState extends State<TaskCreationScreen> {
       lastDate: now.add(const Duration(days: 365)),
     );
     if (picked != null) {
+      if (!mounted) return;
       final time = await showTimePicker(
         context: context,
-        initialTime: TimeOfDay.fromDateTime(now.add(const Duration(minutes: 10))),
+        initialTime:
+            TimeOfDay.fromDateTime(now.add(const Duration(minutes: 10))),
       );
       if (time != null) {
         setState(() {
-          _dueDate = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
+          _dueDate = DateTime(
+              picked.year, picked.month, picked.day, time.hour, time.minute);
         });
       }
     }
@@ -61,7 +63,9 @@ class _TaskCreationScreenState extends State<TaskCreationScreen> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: _titleController.text.trim(),
       contactName: _contactController.text.trim().isNotEmpty ? 'Contact' : null,
-      contactValue: _contactController.text.trim().isEmpty ? null : _contactController.text.trim(),
+      contactValue: _contactController.text.trim().isEmpty
+          ? null
+          : _contactController.text.trim(),
       type: _type,
       dueDate: _dueDate!,
       isFullForce: _isFullForce,
@@ -106,21 +110,25 @@ class _TaskCreationScreenState extends State<TaskCreationScreen> {
                 ),
                 validator: (v) {
                   if (_type == TaskType.call || _type == TaskType.sms) {
-                    if (v == null || v.trim().isEmpty) return 'Required for this type';
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Required for this type';
+                    }
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<TaskType>(
-                value: _type,
+                initialValue: _type,
                 decoration: const InputDecoration(labelText: 'Task type'),
                 items: const [
-                  DropdownMenuItem(value: TaskType.general, child: Text('General')),
+                  DropdownMenuItem(
+                      value: TaskType.general, child: Text('General')),
                   DropdownMenuItem(value: TaskType.call, child: Text('Call')),
                   DropdownMenuItem(value: TaskType.email, child: Text('Email')),
                   DropdownMenuItem(value: TaskType.sms, child: Text('SMS')),
-                  DropdownMenuItem(value: TaskType.calendar, child: Text('Calendar')),
+                  DropdownMenuItem(
+                      value: TaskType.calendar, child: Text('Calendar')),
                 ],
                 onChanged: (v) => setState(() => _type = v ?? TaskType.general),
               ),

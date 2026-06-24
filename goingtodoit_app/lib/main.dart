@@ -3,6 +3,7 @@ import 'core/task_model.dart';
 import 'data/task_repository.dart';
 import 'features/task_creation/task_creation_screen.dart';
 import 'features/deadline/deadline_handler.dart';
+import 'features/deep_links/deep_link_handler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -84,9 +85,17 @@ class TaskListScreen extends StatelessWidget {
     );
   }
 
-  void _launchTask(BuildContext context, Task task) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Launching: ${task.title}')),
+  Future<void> _launchTask(BuildContext context, Task task) async {
+    await DeepLinkHandler.launch(context, task);
+    // Mark complete and cancel any pending deadline notification.
+    await TaskRepository().updateTask(
+      task.copyWith(isCompleted: true, completedAt: DateTime.now()),
     );
+    await DeadlineHandler.cancel(task.id);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Completed: ${task.title}')),
+      );
+    }
   }
 }

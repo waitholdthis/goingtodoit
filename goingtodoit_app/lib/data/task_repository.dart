@@ -5,11 +5,18 @@ import 'dart:io';
 import '../core/task_model.dart';
 
 class TaskRepository extends ChangeNotifier {
+  TaskRepository._internal();
+  static final TaskRepository _instance = TaskRepository._internal();
+  factory TaskRepository() => _instance;
+
   static const _fileName = 'tasks.json';
   List<Task> _tasks = [];
   bool _initialized = false;
 
-  Future<void> init() async {
+  /// Initializes the shared repository. Safe to call multiple times.
+  static Future<void> init() => _instance._init();
+
+  Future<void> _init() async {
     if (_initialized) return;
     try {
       final dir = await getApplicationDocumentsDirectory();
@@ -39,14 +46,14 @@ class TaskRepository extends ChangeNotifier {
   }
 
   Future<void> addTask(Task task) async {
-    await init();
+    await _init();
     _tasks.add(task);
     await _save();
     notifyListeners();
   }
 
   Future<void> updateTask(Task task) async {
-    await init();
+    await _init();
     final idx = _tasks.indexWhere((t) => t.id == task.id);
     if (idx >= 0) {
       _tasks[idx] = task;
@@ -56,18 +63,13 @@ class TaskRepository extends ChangeNotifier {
   }
 
   Future<void> deleteTask(String id) async {
-    await init();
+    await _init();
     _tasks.removeWhere((t) => t.id == id);
     await _save();
     notifyListeners();
   }
 
-  List<Task> getAllTasks() {
-    if (!_initialized) {
-      return List.unmodifiable(_tasks);
-    }
-    return List.unmodifiable(_tasks);
-  }
+  List<Task> getAllTasks() => List.unmodifiable(_tasks);
 
   Task? getTask(String id) {
     try {

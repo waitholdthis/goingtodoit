@@ -18,3 +18,11 @@ Thumbs.db
 # Misc
 *.log
 *.tmp
+
+# Android signing secrets — never commit these
+**/key.properties
+*.jks
+*.keystore
+
+# Local machine-specific dev environment
+.devenv.sh
